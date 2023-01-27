@@ -1,4 +1,5 @@
 from rest_framework import permissions
+from rest_framework.decorators import action
 from rest_framework.response import Response
 from rest_framework.viewsets import ModelViewSet
 
@@ -14,38 +15,28 @@ from api.serializers import (
     StudentSerializer,
     DisciplineSerializer,
     StudyGroupSerializer,
-    SpecialtySerializer
+    SpecialtySerializer,
+    SpecialtyAddDisciplinesSerializer,
+    SpecialtyRemoveDisciplinesSerializer
 )
-from api.permissions import CreateOrOwnerPermission
 
 
 class EditableViewSet(ModelViewSet):
     """
-    ViewSet that defines partial_update() and destroy() behavior
+    ViewSet that defines partial_update() behavior
     in order to conveniently manipulate with Specialty and Student
     """
+
     def partial_update(self, request, *args, **kwargs) -> Response:
         serializer = self.get_serializer(
             self.get_object(),
             data=request.data,
-            partial=True,
-            context={'request': request}
+            partial=True
         )
         if serializer.is_valid():
             serializer.save()
             return Response(serializer.data, status=200)
         return Response(serializer.errors, status=400)
-
-    def destroy(self, request, *args, **kwargs) -> Response:
-        """
-        If there is some data in DELETE request, then we update fields by deleting
-        these data from them
-        Else just delete the object
-        """
-        if request.data:
-            return self.partial_update(request)
-
-        return super().destroy(request, *args, **kwargs)
 
 
 class CuratorViewSet(ModelViewSet):
@@ -74,5 +65,35 @@ class StudyGroupViewSet(ModelViewSet):
 
 class SpecialtyViewSet(EditableViewSet):
     queryset = Specialty.objects.select_related('curator').prefetch_related('disciplines')
-    serializer_class = SpecialtySerializer
     # permission_classes = (permissions.IsAdminUser,)
+
+    def get_serializer_class(self):
+        if self.action == 'add_disciplines':
+            return SpecialtyAddDisciplinesSerializer
+        elif self.action == 'remove_disciplines':
+            return SpecialtyRemoveDisciplinesSerializer
+        return SpecialtySerializer
+
+    @action(methods=['PATCH'], detail=True)
+    def add_disciplines(self, request, pk=None):
+        serializer = self.get_serializer(
+            self.get_object(),
+            data=request.data,
+            partial=True
+        )
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data, status=200)
+        return Response(serializer.errors, status=400)
+
+    @action(methods=['PATCH'], detail=True)
+    def remove_disciplines(self, request, pk=None):
+        serializer = self.get_serializer(
+            self.get_object(),
+            data=request.data,
+            partial=True
+        )
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data, status=200)
+        return Response(serializer.errors, status=400)
