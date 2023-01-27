@@ -77,19 +77,15 @@ class Specialty(models.Model):
     curator = models.ForeignKey(
         Curator,
         on_delete=models.PROTECT,
+        related_name='specialty',
         null=True,
         blank=True
     )
     disciplines = models.ManyToManyField(
         'Discipline',
         related_name='specialties',
-        null=True,
         blank=True
     )
-
-    def add_disciplines(self, disciplines: list):
-        self.disciplines.set(disciplines)
-        return self
 
 
 class Discipline(models.Model):
