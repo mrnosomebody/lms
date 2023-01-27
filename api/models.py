@@ -93,10 +93,10 @@ class Discipline(models.Model):
 
 
 class Student(User):
-    group = models.ForeignKey(
+    study_group = models.ForeignKey(
         'StudyGroup',
         on_delete=models.PROTECT,
-        related_name='student',
+        related_name='students',
         null=True,
         blank=True
     )
@@ -104,19 +104,25 @@ class Student(User):
 
 
 class StudyGroup(models.Model):
+    GENDERS = [
+        ('male', 'Male'),
+        ('female', 'Female'),
+    ]
+
     group_code = models.CharField(max_length=6, unique=True)
     specialty = models.ForeignKey(
         Specialty,
         on_delete=models.PROTECT,
         related_name='study_groups'
     )
+    sex = models.CharField(max_length=6, choices=GENDERS)
     max_students = models.IntegerField(default=20)
 
     def add_student(self, student: Student):
-        if not student.group:
-            if self.max_students >= self.objects.all().count():
-                student.group = self.id
+        if not student.study_group:
+            if self.max_students > StudyGroup.objects.get(id=self.id).students.count():
+                student.study_group = self
                 student.save()
                 return self
-            return ValidationError('Max amount of students in this group exceeded')
-        return ValidationError('User is already in the group')
+            raise ValidationError('Max amount of students in this group exceeded')
+        raise ValidationError('User is already in the group')
