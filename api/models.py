@@ -100,7 +100,11 @@ class Student(User):
         null=True,
         blank=True
     )
-    avg_grade = models.DecimalField(max_digits=3, decimal_places=2, default=0)
+    avg_grade = models.DecimalField(
+        max_digits=3,
+        decimal_places=2,
+        default=0
+    )
 
 
 class StudyGroup(models.Model):
@@ -115,7 +119,10 @@ class StudyGroup(models.Model):
         on_delete=models.PROTECT,
         related_name='study_groups'
     )
-    sex = models.CharField(max_length=6, choices=GENDERS)
+    sex = models.CharField(
+        max_length=6,
+        choices=GENDERS
+    )
     max_students = models.IntegerField(default=20)
 
     def add_student(self, student: Student):

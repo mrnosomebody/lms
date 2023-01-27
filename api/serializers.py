@@ -1,6 +1,7 @@
 from typing import OrderedDict
 
 from rest_framework import serializers
+from rest_framework.views import APIView
 
 from api.models import (
     Curator,
@@ -43,27 +44,12 @@ class SpecialtySerializer(serializers.ModelSerializer):
         return Specialty.objects.create(name=validated_data.get('name'))
 
     def update(self, instance: Specialty, validated_data: dict) -> Specialty:
-        method = self.context.get('request').method
+        curator = validated_data.get('curator')
 
-        if method == 'PATCH':
-            if 'disciplines' in validated_data:
-                disciplines: list = validated_data.get('disciplines')
-
-                for i in disciplines:
-                    instance.disciplines.add(i)
-
-            if 'curator' in validated_data:
-                instance.curator = validated_data.get('curator')
-
-        if method == 'DELETE':
-            if 'disciplines' in validated_data:
-                disciplines: list = validated_data.get('disciplines')
-
-                for i in disciplines:
-                    instance.disciplines.remove(i)
-
-            if 'curator' in validated_data:
-                instance.curator = None
+        if curator:
+            instance.curator = curator
+        else:
+            instance.curator = None
 
         instance.save()
         return instance
@@ -121,13 +107,11 @@ class StudentSerializer(serializers.ModelSerializer):
         return Student.objects.create_user(**validated_data)
 
     def update(self, instance: Student, validated_data: dict) -> Student:
-        method = self.context.get('request').method
+        study_group = validated_data.get('study_group')
 
-        if method == 'PATCH':
-            study_group = validated_data.get('study_group')
+        if study_group:
             study_group.add_student(instance)
-
-        if method == 'DELETE':
+        else:
             instance.study_group = None
 
         instance.save()
@@ -136,3 +120,45 @@ class StudentSerializer(serializers.ModelSerializer):
     class Meta:
         model = Student
         fields = ('id', 'first_name', 'last_name', 'email', 'password', 'study_group')
+
+
+class SpecialtyAddDisciplinesSerializer(serializers.ModelSerializer):
+    disciplines = serializers.PrimaryKeyRelatedField(
+        many=True,
+        queryset=Discipline.objects.all()
+    )
+
+    def update(self, instance, validated_data):
+        print(validated_data)
+        disciplines: list = validated_data.get('disciplines')
+
+        for discipline in disciplines:
+            instance.disciplines.add(discipline)
+
+        print(instance)
+        instance.save()
+        return instance
+
+    class Meta:
+        model = Specialty
+        fields = ('id', 'name', 'disciplines')
+
+
+class SpecialtyRemoveDisciplinesSerializer(serializers.ModelSerializer):
+    disciplines = serializers.PrimaryKeyRelatedField(
+        many=True,
+        queryset=Discipline.objects.all()
+    )
+
+    def update(self, instance, validated_data):
+        disciplines: list = validated_data.get('disciplines')
+
+        for discipline in disciplines:
+            instance.disciplines.remove(discipline)
+
+        instance.save()
+        return instance
+
+    class Meta:
+        model = Specialty
+        fields = ('id', 'name', 'disciplines')
