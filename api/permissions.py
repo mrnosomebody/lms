@@ -1,10 +1,15 @@
-from rest_framework.permissions import BasePermission, IsAdminUser, SAFE_METHODS
+from rest_framework.permissions import (
+    BasePermission,
+    IsAdminUser,
+    SAFE_METHODS
+)
 from api.models import StudyGroup, Student, Curator
 
 
 class CanChangeStudentPermission(BasePermission):
     """
-    Curator can add student to only those groups that are related to the specialty he manages
+    Curator can add student to only those groups
+    that are related to the specialty he manages
     """
 
     def has_object_permission(self, request, view, obj: Student):
@@ -23,7 +28,8 @@ class CanChangeStudentPermission(BasePermission):
 class CanChangeStudyGroupOrReadOnlyPermission(BasePermission):
     def has_object_permission(self, request, view, obj):
         if request.method not in SAFE_METHODS:
-            return request.user and request.user.has_perm('api.change_studygroup')
+            return request.user and\
+                request.user.has_perm('api.change_studygroup')
         return True
 
 
