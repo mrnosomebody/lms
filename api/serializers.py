@@ -2,6 +2,7 @@ from typing import OrderedDict
 
 from django.contrib.auth.models import Permission
 from rest_framework import serializers
+from rest_framework.exceptions import ValidationError
 
 from api.models import (
     Curator,
@@ -115,7 +116,7 @@ class StudentSerializer(serializers.ModelSerializer):
         return Student.objects.create_user(**validated_data)
 
     def update(self, instance: Student, validated_data: dict) -> Student:
-        study_group = validated_data.get('study_group')
+        study_group: StudyGroup = validated_data.get('study_group')
 
         if study_group:
             study_group.add_student(instance)
