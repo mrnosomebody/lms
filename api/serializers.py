@@ -1,7 +1,7 @@
 from typing import OrderedDict
 
+from django.contrib.auth.models import Permission
 from rest_framework import serializers
-from rest_framework.views import APIView
 
 from api.models import (
     Curator,
@@ -16,11 +16,19 @@ class CuratorSerializer(serializers.ModelSerializer):
     password = serializers.CharField(write_only=True)
 
     def create(self, validated_data: dict) -> Curator:
-        return Curator.objects.create_user(**validated_data)
+        password = validated_data.pop('password')
+        curator = Curator.objects.create(**validated_data)
+        curator.set_password(password)
+
+        perms = Permission.objects.filter(codename__in=('change_student', 'change_studygroup'))
+        curator.user_permissions.set(perms)
+
+        curator.save()
+        return curator
 
     class Meta:
         model = Curator
-        fields = ('id', 'first_name', 'last_name', 'email', 'password')
+        fields = ('id', 'first_name', 'last_name', 'email', 'password', 'work_experience', 'post')
 
 
 class DisciplineSerializer(serializers.ModelSerializer):
@@ -128,14 +136,12 @@ class SpecialtyAddDisciplinesSerializer(serializers.ModelSerializer):
         queryset=Discipline.objects.all()
     )
 
-    def update(self, instance, validated_data):
-        print(validated_data)
+    def update(self, instance: Specialty, validated_data: dict) -> Specialty:
         disciplines: list = validated_data.get('disciplines')
 
         for discipline in disciplines:
             instance.disciplines.add(discipline)
 
-        print(instance)
         instance.save()
         return instance
 
@@ -150,7 +156,7 @@ class SpecialtyRemoveDisciplinesSerializer(serializers.ModelSerializer):
         queryset=Discipline.objects.all()
     )
 
-    def update(self, instance, validated_data):
+    def update(self, instance: Specialty, validated_data: dict) -> Specialty:
         disciplines: list = validated_data.get('disciplines')
 
         for discipline in disciplines:

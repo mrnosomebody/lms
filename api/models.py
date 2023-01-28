@@ -1,5 +1,5 @@
 from django.contrib.auth.base_user import AbstractBaseUser, BaseUserManager
-from django.contrib.auth.models import PermissionsMixin
+from django.contrib.auth.models import PermissionsMixin, Permission
 from django.contrib.auth.password_validation import validate_password
 from django.db import models
 from rest_framework.exceptions import ValidationError
@@ -63,13 +63,13 @@ class User(AbstractBaseUser, PermissionsMixin):
     def is_staff(self):
         return self.is_admin
 
+    def has_perm(self, perm, obj=None):
+        return perm in self.get_user_permissions()
+
 
 class Curator(User):
-    class Meta:
-        permissions = [
-            ('can_manipulate_students', 'Can manipulate students'),
-            ('can_manipulate_student_groups', 'Can manipulate student groups'),
-        ]
+    work_experience = models.IntegerField()
+    post = models.CharField(max_length=255)
 
 
 class Specialty(models.Model):

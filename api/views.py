@@ -10,6 +10,12 @@ from api.models import (
     StudyGroup,
     Specialty
 )
+from api.permissions import (
+    IsOwnerOrAdminPermission,
+    IsAdminUserOrReadOnlyPermission,
+    CanChangeStudentPermission,
+    CanChangeStudyGroupOrReadOnlyPermission
+)
 from api.serializers import (
     CuratorSerializer,
     StudentSerializer,
@@ -42,30 +48,50 @@ class EditableViewSet(ModelViewSet):
 class CuratorViewSet(ModelViewSet):
     queryset = Curator.objects.all()
     serializer_class = CuratorSerializer
-    # permission_classes = (CreateOrOwnerPermission,)
+    permission_classes = (permissions.AllowAny,)
+
+    def update(self, request, *args, **kwargs) -> Response:
+        self.permission_classes = (IsOwnerOrAdminPermission,)
+        return super().update(request, *args, **kwargs)
+
+    def destroy(self, request, *args, **kwargs) -> Response:
+        self.permission_classes = (IsOwnerOrAdminPermission,)
+        return super().destroy(request, *args, **kwargs)
 
 
 class StudentViewSet(EditableViewSet):
     queryset = Student.objects.select_related('study_group')
     serializer_class = StudentSerializer
-    # permission_classes = (CreateOrIsCurator,)
+    permission_classes = (permissions.AllowAny,)
+
+    def update(self, request, *args, **kwargs) -> Response:
+        self.permission_classes = (IsOwnerOrAdminPermission,)
+        return super().update(request, *args, **kwargs)
+
+    def partial_update(self, request, *args, **kwargs) -> Response:
+        self.permission_classes = (CanChangeStudentPermission,)
+        return super().partial_update(request, *args, **kwargs)
+
+    def destroy(self, request, *args, **kwargs) -> Response:
+        self.permission_classes = (IsOwnerOrAdminPermission,)
+        return super().destroy(request, *args, **kwargs)
 
 
 class DisciplineViewSet(ModelViewSet):
     queryset = Discipline.objects.all()
     serializer_class = DisciplineSerializer
-    # permission_classes = (permissions.IsAdminUser,)
+    permission_classes = (IsAdminUserOrReadOnlyPermission,)
 
 
 class StudyGroupViewSet(ModelViewSet):
     queryset = StudyGroup.objects.select_related('specialty')
     serializer_class = StudyGroupSerializer
-    # permission_classes = (IsCurator,)
+    permission_classes = (CanChangeStudyGroupOrReadOnlyPermission,)
 
 
 class SpecialtyViewSet(EditableViewSet):
     queryset = Specialty.objects.select_related('curator').prefetch_related('disciplines')
-    # permission_classes = (permissions.IsAdminUser,)
+    permission_classes = (IsAdminUserOrReadOnlyPermission,)
 
     def get_serializer_class(self):
         if self.action == 'add_disciplines':
