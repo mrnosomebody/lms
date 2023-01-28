@@ -1,8 +1,7 @@
-from typing import OrderedDict
+from typing import OrderedDict, Optional
 
 from django.contrib.auth.models import Permission
 from rest_framework import serializers
-from rest_framework.exceptions import ValidationError
 
 from api.models import (
     Curator,
@@ -21,7 +20,9 @@ class CuratorSerializer(serializers.ModelSerializer):
         curator = Curator.objects.create(**validated_data)
         curator.set_password(password)
 
-        perms = Permission.objects.filter(codename__in=('change_student', 'change_studygroup'))
+        perms = Permission.objects.filter(
+            codename__in=('change_student', 'change_studygroup')
+        )
         curator.user_permissions.set(perms)
 
         curator.save()
@@ -29,7 +30,8 @@ class CuratorSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Curator
-        fields = ('id', 'first_name', 'last_name', 'email', 'password', 'work_experience', 'post')
+        fields = ('id', 'first_name', 'last_name', 'email',
+                  'password', 'work_experience', 'post')
 
 
 class DisciplineSerializer(serializers.ModelSerializer):
@@ -83,7 +85,9 @@ class SpecialtySerializer(serializers.ModelSerializer):
 
 
 class StudyGroupSerializer(serializers.ModelSerializer):
-    specialty = serializers.PrimaryKeyRelatedField(queryset=Specialty.objects.all())
+    specialty = serializers.PrimaryKeyRelatedField(
+        queryset=Specialty.objects.all()
+    )
 
     def to_representation(self, instance: StudyGroup) -> OrderedDict:
         representation = super().to_representation(instance)
@@ -116,7 +120,7 @@ class StudentSerializer(serializers.ModelSerializer):
         return Student.objects.create_user(**validated_data)
 
     def update(self, instance: Student, validated_data: dict) -> Student:
-        study_group: StudyGroup = validated_data.get('study_group')
+        study_group: Optional[Student] = validated_data.get('study_group')
 
         if study_group:
             study_group.add_student(instance)
@@ -128,7 +132,8 @@ class StudentSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Student
-        fields = ('id', 'first_name', 'last_name', 'email', 'password', 'study_group')
+        fields = ('id', 'first_name', 'last_name',
+                  'email', 'password', 'study_group')
 
 
 class SpecialtyAddDisciplinesSerializer(serializers.ModelSerializer):
@@ -138,10 +143,11 @@ class SpecialtyAddDisciplinesSerializer(serializers.ModelSerializer):
     )
 
     def update(self, instance: Specialty, validated_data: dict) -> Specialty:
-        disciplines: list = validated_data.get('disciplines')
+        disciplines: Optional[list] = validated_data.get('disciplines')
 
-        for discipline in disciplines:
-            instance.disciplines.add(discipline)
+        if disciplines:
+            for discipline in disciplines:
+                instance.disciplines.add(discipline)
 
         instance.save()
         return instance
@@ -158,10 +164,11 @@ class SpecialtyRemoveDisciplinesSerializer(serializers.ModelSerializer):
     )
 
     def update(self, instance: Specialty, validated_data: dict) -> Specialty:
-        disciplines: list = validated_data.get('disciplines')
+        disciplines: Optional[list] = validated_data.get('disciplines')
 
-        for discipline in disciplines:
-            instance.disciplines.remove(discipline)
+        if disciplines:
+            for discipline in disciplines:
+                instance.disciplines.remove(discipline)
 
         instance.save()
         return instance

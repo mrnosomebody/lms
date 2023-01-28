@@ -1,5 +1,5 @@
 from django.contrib.auth.base_user import AbstractBaseUser, BaseUserManager
-from django.contrib.auth.models import PermissionsMixin, Permission
+from django.contrib.auth.models import PermissionsMixin
 from django.contrib.auth.password_validation import validate_password
 from django.db import models
 from rest_framework.exceptions import ValidationError
@@ -127,9 +127,12 @@ class StudyGroup(models.Model):
 
     def add_student(self, student: Student):
         if not student.study_group:
-            if self.max_students > StudyGroup.objects.get(id=self.id).students.count():
+            if self.max_students > StudyGroup.objects.get(id=self.id) \
+                    .students.count():
                 student.study_group = self
                 student.save()
                 return self
-            raise ValidationError('Max amount of students in this group exceeded')
+            raise ValidationError(
+                'Max amount of students in this group exceeded'
+            )
         raise ValidationError('User is already in the group')

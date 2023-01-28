@@ -27,7 +27,7 @@ from api.serializers import (
 )
 
 
-class EditableViewSet(ModelViewSet):
+class PartialUpdateViewSet(ModelViewSet):
     """
     ViewSet that defines partial_update() behavior
     in order to conveniently manipulate with Specialty and Student
@@ -59,7 +59,7 @@ class CuratorViewSet(ModelViewSet):
         return super().destroy(request, *args, **kwargs)
 
 
-class StudentViewSet(EditableViewSet):
+class StudentViewSet(PartialUpdateViewSet):
     queryset = Student.objects.select_related('study_group')
     serializer_class = StudentSerializer
     permission_classes = (permissions.AllowAny,)
@@ -89,8 +89,9 @@ class StudyGroupViewSet(ModelViewSet):
     permission_classes = (CanChangeStudyGroupOrReadOnlyPermission,)
 
 
-class SpecialtyViewSet(EditableViewSet):
-    queryset = Specialty.objects.select_related('curator').prefetch_related('disciplines')
+class SpecialtyViewSet(PartialUpdateViewSet):
+    queryset = Specialty.objects.select_related('curator')\
+        .prefetch_related('disciplines')
     permission_classes = (IsAdminUserOrReadOnlyPermission,)
 
     def get_serializer_class(self):
