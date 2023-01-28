@@ -1,4 +1,3 @@
-from django.urls import path
 from rest_framework.routers import DefaultRouter
 
 from api.views import (
@@ -17,17 +16,4 @@ router.register('study-groups', StudyGroupViewSet)
 router.register('disciplines', DisciplineViewSet)
 router.register('specialties', SpecialtyViewSet)
 
-urlpatterns = [
-    # path(
-    #     'specialties/<int:id>/add_disciplines/',
-    #     SpecialtyManageDisciplinesViewSet.as_view(),
-    #     name='add_disciplines'
-    # ),
-    # path(
-    #     'specialties/<int:id>/remove_disciplines/',
-    #     SpecialtyManageDisciplinesViewSet.as_view(),
-    #     name='remove_disciplines'
-    # )
-]
-
-urlpatterns += router.urls
+urlpatterns = router.urls
