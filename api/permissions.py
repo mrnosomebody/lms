@@ -28,14 +28,25 @@ class CanChangeStudentPermission(BasePermission):
 class CanChangeStudyGroupOrReadOnlyPermission(BasePermission):
     def has_object_permission(self, request, view, obj):
         if request.method not in SAFE_METHODS:
-            return request.user and\
+            return request.user and \
+                request.user.is_authenticated and \
                 request.user.has_perm('api.change_studygroup')
         return True
 
 
-class IsOwnerOrAdminPermission(BasePermission):
+class IsOwnerOrAdminOrReadOnlyPermission(BasePermission):
+    def has_permission(self, request, view):
+        user = request.user
+        if request.method == 'POST':
+            return user and user.is_authenticated and user.is_admin
+        return True
+
     def has_object_permission(self, request, view, obj):
-        return obj.id == request.user.id or request.user.is_admin
+        user = request.user
+        if request.method in SAFE_METHODS:
+            return True
+        return user and user.is_authenticated \
+            and (obj.id == user.id or user.is_admin)
 
 
 class IsAdminUserOrReadOnlyPermission(IsAdminUser):

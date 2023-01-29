@@ -11,7 +11,7 @@ from api.models import (
     Specialty
 )
 from api.permissions import (
-    IsOwnerOrAdminPermission,
+    IsOwnerOrAdminOrReadOnlyPermission,
     IsAdminUserOrReadOnlyPermission,
     CanChangeStudentPermission,
     CanChangeStudyGroupOrReadOnlyPermission
@@ -48,15 +48,7 @@ class PartialUpdateViewSet(ModelViewSet):
 class CuratorViewSet(ModelViewSet):
     queryset = Curator.objects.all()
     serializer_class = CuratorSerializer
-    permission_classes = (permissions.AllowAny,)
-
-    def update(self, request, *args, **kwargs) -> Response:
-        self.permission_classes = (IsOwnerOrAdminPermission,)
-        return super().update(request, *args, **kwargs)
-
-    def destroy(self, request, *args, **kwargs) -> Response:
-        self.permission_classes = (IsOwnerOrAdminPermission,)
-        return super().destroy(request, *args, **kwargs)
+    permission_classes = (IsOwnerOrAdminOrReadOnlyPermission,)
 
 
 class StudentViewSet(PartialUpdateViewSet):
@@ -90,7 +82,7 @@ class StudyGroupViewSet(ModelViewSet):
 
 
 class SpecialtyViewSet(PartialUpdateViewSet):
-    queryset = Specialty.objects.select_related('curator')\
+    queryset = Specialty.objects.select_related('curator') \
         .prefetch_related('disciplines')
     permission_classes = (IsAdminUserOrReadOnlyPermission,)
 
