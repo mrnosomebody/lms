@@ -21,7 +21,11 @@ class CuratorSerializer(serializers.ModelSerializer):
         curator.set_password(password)
 
         perms = Permission.objects.filter(
-            codename__in=('change_student', 'change_studygroup')
+            codename__in=(
+                'change_student',
+                'add_studygroup',
+                'change_studygroup'
+            )
         )
         curator.user_permissions.set(perms)
 
@@ -55,15 +59,17 @@ class SpecialtySerializer(serializers.ModelSerializer):
         return Specialty.objects.create(name=validated_data.get('name'))
 
     def update(self, instance: Specialty, validated_data: dict) -> Specialty:
-        curator = validated_data.get('curator')
+        if self.context.get('request').method == 'PATCH':
+            curator = validated_data.get('curator')
 
-        if curator:
-            instance.curator = curator
-        else:
-            instance.curator = None
+            if curator:
+                instance.curator = curator
+            else:
+                instance.curator = None
 
-        instance.save()
-        return instance
+            instance.save()
+            return instance
+        return super().update(instance, validated_data)
 
     def to_representation(self, instance: Specialty) -> OrderedDict:
         representation = super().to_representation(instance)
@@ -116,24 +122,30 @@ class StudentSerializer(serializers.ModelSerializer):
     )
 
     def create(self, validated_data: dict) -> Student:
-        validated_data.pop('study_group')
-        return Student.objects.create_user(**validated_data)
+        password = validated_data.pop('password')
+        student = Student.objects.create(**validated_data)
+        student.set_password(password)
+        student.save()
+        return student
 
     def update(self, instance: Student, validated_data: dict) -> Student:
-        study_group: Optional[Student] = validated_data.get('study_group')
+        if self.context.get('request').method == 'PATCH':
+            study_group: Optional[StudyGroup] \
+                = validated_data.get('study_group')
 
-        if study_group:
-            study_group.add_student(instance)
-        else:
-            instance.study_group = None
+            if study_group:
+                study_group.add_student(instance)
+            else:
+                instance.study_group = None
 
-        instance.save()
-        return instance
+            instance.save()
+            return instance
+        return super().update(instance, validated_data)
 
     class Meta:
         model = Student
-        fields = ('id', 'first_name', 'last_name',
-                  'email', 'password', 'study_group')
+        fields = ('id', 'first_name', 'last_name', 'email',
+                  'password', 'study_group', 'sex')
 
 
 class SpecialtyAddDisciplinesSerializer(serializers.ModelSerializer):

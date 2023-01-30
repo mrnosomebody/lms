@@ -18,19 +18,33 @@ class CanChangeStudentPermission(BasePermission):
 
         if study_group_id:
             study_group = StudyGroup.objects.get(id=study_group_id)
-            if study_group.specialty.curator.id == user.id:
+            if user and user.is_authenticated\
+                    and study_group.specialty.curator\
+                    and study_group.specialty.curator.id == user.id:
                 return request.user.has_perm('api.change_student')
         else:
-            if obj.study_group.specialty.curator.id == user.id:
+            if user and user.is_authenticated \
+                    and obj.study_group\
+                    and obj.study_group.specialty.curator \
+                    and obj.study_group.specialty.curator.id == user.id:
                 return request.user.has_perm('api.change_student')
 
 
-class CanChangeStudyGroupOrReadOnlyPermission(BasePermission):
+class CanManageStudyGroupOrReadOnlyPermission(BasePermission):
+    def has_permission(self, request, view):
+        if request.method not in SAFE_METHODS:
+            user = request.user
+            return user and \
+                user.is_authenticated and \
+                user.has_perm('api.add_studygroup')
+        return True
+
     def has_object_permission(self, request, view, obj):
         if request.method not in SAFE_METHODS:
-            return request.user and \
-                request.user.is_authenticated and \
-                request.user.has_perm('api.change_studygroup')
+            user = request.user
+            return user and \
+                user.is_authenticated and \
+                user.has_perm('api.change_studygroup')
         return True
 
 
@@ -49,7 +63,7 @@ class IsOwnerOrAdminOrReadOnlyPermission(BasePermission):
             and (obj.id == user.id or user.is_admin)
 
 
-class IsAdminUserOrReadOnlyPermission(IsAdminUser):
+class IsAdminOrReadOnlyPermission(IsAdminUser):
     def has_permission(self, request, view):
         is_admin = super().has_permission(request, view)
         return request.method in SAFE_METHODS or is_admin
