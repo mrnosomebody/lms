@@ -90,9 +90,15 @@ class Specialty(models.Model):
 
 class Discipline(models.Model):
     name = models.CharField(max_length=255, unique=True)
+    description = models.TextField()
 
 
 class Student(User):
+    GENDERS = [
+        ('male', 'Male'),
+        ('female', 'Female'),
+    ]
+
     study_group = models.ForeignKey(
         'StudyGroup',
         on_delete=models.PROTECT,
@@ -105,23 +111,18 @@ class Student(User):
         decimal_places=2,
         default=0
     )
+    sex = models.CharField(
+        max_length=6,
+        choices=GENDERS
+    )
 
 
 class StudyGroup(models.Model):
-    GENDERS = [
-        ('male', 'Male'),
-        ('female', 'Female'),
-    ]
-
     group_code = models.CharField(max_length=6, unique=True)
     specialty = models.ForeignKey(
         Specialty,
         on_delete=models.PROTECT,
         related_name='study_groups'
-    )
-    sex = models.CharField(
-        max_length=6,
-        choices=GENDERS
     )
     max_students = models.IntegerField(default=20)
 

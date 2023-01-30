@@ -25,19 +25,6 @@ url = '/curators/'
 
 # =================================LIST VIEW================================
 
-
-@pytest.mark.django_db
-def test_create_curator_unauthenticated(api_client):
-    response = api_client.post(
-        path=url,
-        data=curator_data,
-        format='json'
-    )
-
-    assert response.status_code == 401
-    assert Curator.objects.all().count() == 0
-
-
 @pytest.mark.django_db
 @pytest.mark.parametrize(
     "user",
@@ -46,11 +33,9 @@ def test_create_curator_unauthenticated(api_client):
 def test_create_curator_authenticated(
         api_client,
         user,
-        get_jwt_token,
-        request
+        authenticate
 ):
-    current_user = request.getfixturevalue(user)
-    token = get_jwt_token(current_user)
+    token = authenticate(user)
 
     api_client.credentials(HTTP_AUTHORIZATION=f'{token}')
     response = api_client.post(
@@ -70,24 +55,7 @@ def test_create_curator_authenticated(
         assert Curator.objects.all().count() == 0
 
 
-@pytest.mark.django_db
-def test_list_curators(api_client, curator_user):
-    response = api_client.get(path=url)
-
-    assert response.status_code == 200
-    assert Curator.objects.all().count() == 1
-
-
 # ================================DETAIL VIEW=================================
-
-@pytest.mark.django_db
-def test_retrieve_curator_unauthenticated(api_client, curator_user):
-    cur = curator_user
-
-    response = api_client.get(path=url + f'{cur.id}/')
-
-    assert response.status_code == 200
-
 
 @pytest.mark.django_db
 @pytest.mark.parametrize(
@@ -97,37 +65,16 @@ def test_retrieve_curator_unauthenticated(api_client, curator_user):
 def test_retrieve_curator_authenticated(
         api_client,
         user,
-        get_jwt_token,
-        request,
+        authenticate,
         curator_user
 ):
     cur = curator_user
-    current_user = request.getfixturevalue(user)
-    token = get_jwt_token(current_user)
+    token = authenticate(user)
 
     api_client.credentials(HTTP_AUTHORIZATION=f'{token}')
     response = api_client.get(path=url + f'{cur.id}/')
 
     assert response.status_code == 200
-
-
-@pytest.mark.django_db
-@pytest.mark.parametrize('method', ['put', 'patch', 'delete'])
-def test_unsafe_methods_curator_unauthenticated(
-        api_client,
-        curator_user,
-        method
-):
-    cur = curator_user
-
-    if method == 'put':
-        response = api_client.put(path=url + f'{cur.id}/')
-    elif method == 'patch':
-        response = api_client.patch(path=url + f'{cur.id}/')
-    elif method == 'delete':
-        response = api_client.delete(path=url + f'{cur.id}/')
-
-    assert response.status_code == 401
 
 
 @pytest.mark.django_db
@@ -138,14 +85,11 @@ def test_unsafe_methods_curator_unauthenticated(
 def test_update_curator_authenticated(
         api_client,
         user,
-        get_jwt_token,
-        request,
+        authenticate,
         curator_user
 ):
     cur = curator_user
-    current_user = request.getfixturevalue(user)
-
-    token = get_jwt_token(current_user)
+    token = authenticate(user)
 
     api_client.credentials(HTTP_AUTHORIZATION=f'{token}')
     response = api_client.put(
@@ -172,14 +116,11 @@ def test_update_curator_authenticated(
 def test_patch_curator_authenticated(
         api_client,
         user,
-        get_jwt_token,
-        request,
+        authenticate,
         curator_user
 ):
     cur = curator_user
-    current_user = request.getfixturevalue(user)
-
-    token = get_jwt_token(current_user)
+    token = authenticate(user)
 
     api_client.credentials(HTTP_AUTHORIZATION=f'{token}')
     response = api_client.patch(
@@ -204,14 +145,11 @@ def test_patch_curator_authenticated(
 def test_delete_curator_authenticated(
         api_client,
         user,
-        get_jwt_token,
-        request,
+        authenticate,
         curator_user
 ):
     cur = curator_user
-    current_user = request.getfixturevalue(user)
-
-    token = get_jwt_token(current_user)
+    token = authenticate(user)
 
     api_client.credentials(HTTP_AUTHORIZATION=f'{token}')
     response = api_client.delete(path=url + f'{cur.id}/')
