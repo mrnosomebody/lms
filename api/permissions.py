@@ -13,21 +13,20 @@ class CanChangeStudentPermission(BasePermission):
     """
 
     def has_object_permission(self, request, view, obj: Student):
-        study_group_id = request.data.get('study_group')
         user: Curator = request.user
 
-        if study_group_id:
-            study_group = StudyGroup.objects.get(id=study_group_id)
-            if user and user.is_authenticated\
-                    and study_group.specialty.curator\
-                    and study_group.specialty.curator.id == user.id:
-                return request.user.has_perm('api.change_student')
+        if request.data.get('study_group'):
+            study_group = StudyGroup.objects.get(id=request.data.get('study_group'))
         else:
-            if user and user.is_authenticated \
-                    and obj.study_group\
-                    and obj.study_group.specialty.curator \
-                    and obj.study_group.specialty.curator.id == user.id:
-                return request.user.has_perm('api.change_student')
+            study_group = obj.study_group
+
+        if not study_group or not study_group.specialty.curator:
+            return False
+
+        if study_group.specialty.curator.id == user.id:
+            return request.user.has_perm('api.change_student')
+
+        return False
 
 
 class CanManageStudyGroupOrReadOnlyPermission(BasePermission):
