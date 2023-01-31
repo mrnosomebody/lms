@@ -16,7 +16,9 @@ class CanChangeStudentPermission(BasePermission):
         user: Curator = request.user
 
         if request.data.get('study_group'):
-            study_group = StudyGroup.objects.get(id=request.data.get('study_group'))
+            study_group = StudyGroup.objects.get(
+                id=request.data.get('study_group')
+            )
         else:
             study_group = obj.study_group
 
