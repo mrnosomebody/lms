@@ -13,7 +13,7 @@ from reports.tasks import generate_report
 class ReportViewSet(ModelViewSet):
     queryset = Report.objects.all()
     serializer_class = ReportSerializer
-    permission_classes = (permissions.IsAdminUser,)
+    # permission_classes = (permissions.IsAdminUser,)
 
     def create(self, request, *args, **kwargs):
         task = generate_report.delay()
