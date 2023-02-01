@@ -1,0 +1,7 @@
+task.md
+venv
+.mypy_cache
+.pytest_cache
+.__pycache__
+.coverage
+.gitignore

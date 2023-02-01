@@ -100,8 +100,9 @@ def write_to_excel(specialties_data: list, study_groups_data: list) -> str:
                 value=obj['max_students'] - student_cnt
             )
 
-        filename = 'media/reports/' + \
+        filename = 'media/' + \
                    str(datetime.datetime.now()) + '_report.xlsx'
+        print()
         wb.save(filename)
         return filename
     except Exception:

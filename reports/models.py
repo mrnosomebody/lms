@@ -1,5 +1,3 @@
-from datetime import datetime
-
 from django.db import models
 
 
@@ -10,10 +8,7 @@ class Report(models.Model):
         ('failed', 'Failed')
     ]
 
-    title = models.CharField(
-        max_length=255,
-        default=str(datetime.now()) + '_report.xlsx'
-    )
+    title = models.CharField(max_length=255, default='title_default')
     file = models.FileField(upload_to='reports/', blank=True, null=True)
     created_at = models.DateTimeField(auto_now_add=True)
     status = models.CharField(
