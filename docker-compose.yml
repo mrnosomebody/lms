@@ -1,0 +1,57 @@
+version: '3.9'
+
+services:
+
+  backend:
+    restart: unless-stopped
+    container_name: backend
+    build:
+      context: .
+      dockerfile: Dockerfile
+    ports:
+      - '8000:8000'
+    env_file:
+      - ./.env
+    command: sh -c "python manage.py migrate && python manage.py runserver 0.0.0.0:8000"
+    volumes:
+      - media:/app/media
+    depends_on:
+      - db
+
+  db:
+    restart: unless-stopped
+    image: postgres
+    container_name: lms_postgres
+    env_file:
+      - ./.env
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_DB: ${POSTGRES_DB}
+    volumes:
+      - postgres_data:/var/lib/postgresql/data/
+    ports:
+      - '5432:5432'
+
+  worker:
+    restart: unless-stopped
+    build:
+      context: .
+      dockerfile: Dockerfile
+    command: sh -c "celery -A lms worker -l info"
+    volumes:
+      - media:/app/media
+    depends_on:
+      - db
+      - redis
+      - backend
+
+  redis:
+    restart: unless-stopped
+    image: redis
+    ports:
+      - "6379:6379"
+
+volumes:
+  postgres_data:
+  media:
