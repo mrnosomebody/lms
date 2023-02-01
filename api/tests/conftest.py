@@ -47,9 +47,9 @@ def get_jwt_token():
 @pytest.fixture
 def admin_user() -> User:
     return User.objects.create_user(
-        first_name='admin',
-        last_name='admin',
-        email='admin@mail.com',
+        first_name='admin1',
+        last_name='admin1',
+        email='admin1@mail.com',
         password='simbaLion228',
         is_admin=True
     )

@@ -8,7 +8,7 @@ router = DefaultRouter()
 router.register('reports', ReportViewSet)
 
 urlpatterns = [
-    path('reports/<int:id>/', get_report),
+    path('reports/download/<int:id>/', get_report),
     path('tasks/<str:uuid>/', get_task_status)
 ]
 
