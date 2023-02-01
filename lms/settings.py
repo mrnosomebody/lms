@@ -114,10 +114,6 @@ REST_FRAMEWORK = {
     )
 }
 
-SIMPLE_JWT = {
-    'ACCESS_TOKEN_LIFETIME': timedelta(minutes=40),
-}
-
 # redis
 REDIS_HOST = 'redis'
 REDIS_PORT = '6379'
