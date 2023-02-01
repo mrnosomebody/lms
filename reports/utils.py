@@ -91,7 +91,7 @@ def write_to_excel(specialties_data: list, study_groups_data: list) -> str:
                 student_sex[student['sex']] += 1
                 student_cnt += 1
 
-            ws2.cell(row=row_num, column=2, value='\n'.join(students))
+            ws2.cell(row=row_num, column=2, value='\n'.join(sorted(students)))
             ws2.cell(row=row_num, column=3, value=student_sex['male'])
             ws2.cell(row=row_num, column=4, value=student_sex['female'])
             ws2.cell(
