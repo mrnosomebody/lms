@@ -1,8 +1,4 @@
-import time
-
 import pytest
-
-from reports.models import Report
 
 
 @pytest.mark.django_db
